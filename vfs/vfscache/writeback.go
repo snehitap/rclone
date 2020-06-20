@@ -248,8 +248,9 @@ func (wb *writeBack) add(item *Item, name string, modified bool, putFn putFn) *w
 	return wbItem
 }
 
-// Call when a file is removed. This cancels a writeback if there is
-// one and doesn't return the item to the queue.
+// Call to remove an item from the writeback, for example when a file
+// is removed. This cancels a writeback if there is one and doesn't
+// return the item to the queue.
 func (wb *writeBack) remove(item *Item) (found bool) {
 	wb.mu.Lock()
 	defer wb.mu.Unlock()
@@ -336,20 +337,6 @@ func (wb *writeBack) _cancelUpload(wbItem *writeBackItem) {
 	// uploading items are not on the heap so add them back
 	wb._pushItem(wbItem)
 	fs.Infof(wbItem.name, "vfs cache: cancelled upload")
-}
-
-// cancelUpload cancels the upload of the item if there is one in progress
-//
-// it returns true if there was an upload in progress
-func (wb *writeBack) cancelUpload(item *Item) bool {
-	wb.mu.Lock()
-	defer wb.mu.Unlock()
-	wbItem, ok := wb.lookup[item]
-	if !ok || !wbItem.uploading {
-		return false
-	}
-	wb._cancelUpload(wbItem)
-	return true
 }
 
 // this uploads as many items as possible
